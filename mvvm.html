@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>MVVM Clicker</title>
+    <style>
+        div {
+            font-size: 300%;
+            user-select: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div id="image"></div>
+        <div id="pointsInfo"></div>
+        <button id="upgradeButton">Kjøp oppgradering (10 poeng)</button>
+    </div>
+
+    <script>
+        // MODEL
+        const model = {
+            points: 0,
+            pointsPerClick: 1,
+            smileyIndex: 0
+        };
+
+        // VIEWMODEL
+        const viewModel = {
+            get points() {
+                return model.points;
+            },
+            get smiley() {
+                return model.smileyIndex === 0 ? '😀' : '😁';
+            },
+            canUpgrade() {
+                return model.points >= 10;
+            },
+            click() {
+                model.points += model.pointsPerClick;
+                model.smileyIndex = 1 - model.smileyIndex;
+                view.update();
+            },
+            upgrade() {
+                if (this.canUpgrade()) {
+                    model.points -= 10;
+                    model.pointsPerClick++;
+                    view.update();
+                }
+            }
+        };
+
+        // VIEW
+        const view = {
+            init() {
+                this.imageEl = document.getElementById('image');
+                this.pointsEl = document.getElementById('pointsInfo');
+                this.upgradeBtn = document.getElementById('upgradeButton');
+
+                this.imageEl.addEventListener('click', () => viewModel.click());
+                this.upgradeBtn.addEventListener('click', () => viewModel.upgrade());
+
+                this.update();
+            },
+            update() {
+                this.imageEl.textContent = viewModel.smiley;
+                this.pointsEl.textContent = viewModel.points;
+                this.upgradeBtn.disabled = !viewModel.canUpgrade();
+            }
+        };
+
+        // START
+        view.init();
+    </script>
+</body>
+
+</html>

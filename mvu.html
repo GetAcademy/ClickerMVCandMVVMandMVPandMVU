@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MVU Clicker</title>
+  <style>
+    div {
+      font-size: 300%;
+      user-select: none;
+    }
+    input {
+      font-size: 20px;
+      width: 60px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script>
+    // MODEL
+    function initModel() {
+      return {
+        points: 0,
+        pointsPerClick: 1,
+        smileyIndex: 0
+      };
+    }
+
+    // MESSAGES
+    const Msg = {
+      Clicked: 'CLICKED',
+      Upgrade: 'UPGRADE',
+      SetPointsPerClick: 'SET_POINTS_PER_CLICK'
+    };
+
+    // UPDATE
+    function update(msg, payload, model) {
+      switch (msg) {
+        case Msg.Clicked:
+          return {
+            ...model,
+            points: model.points + model.pointsPerClick,
+            smileyIndex: 1 - model.smileyIndex
+          };
+
+        case Msg.Upgrade:
+          if (model.points < 10) return model;
+          return {
+            ...model,
+            points: model.points - 10,
+            pointsPerClick: model.pointsPerClick + 1
+          };
+
+        case Msg.SetPointsPerClick:
+          return {
+            ...model,
+            pointsPerClick: Number(payload)
+          };
+
+        default:
+          return model;
+      }
+    }
+
+    // VIEW
+    function view(model, dispatch) {
+      const app = document.getElementById('app');
+      const smiley = model.smileyIndex === 0 ? '😀' : '😁';
+
+      app.innerHTML = `
+        <div id="smiley">${smiley}</div>
+        <div id="points">${model.points}</div>
+
+        <label>
+          Poeng per klikk:
+          <input type="number" min="1" id="ppcInput" value="${model.pointsPerClick}" />
+        </label>
+        <br/>
+        <button id="upgradeBtn" ${model.points < 10 ? 'disabled' : ''}>
+          Kjøp oppgradering (10 poeng)
+        </button>
+      `;
+
+      // Event bindings
+      document.getElementById('smiley')
+        .addEventListener('click', () => dispatch(Msg.Clicked));
+
+      document.getElementById('upgradeBtn')
+        .addEventListener('click', () => dispatch(Msg.Upgrade));
+
+      document.getElementById('ppcInput')
+        .addEventListener('input', e =>
+          dispatch(Msg.SetPointsPerClick, e.target.value)
+        );
+    }
+
+    // PROGRAM RUNNER
+    function appInit() {
+      let model = initModel();
+
+      function dispatch(msg, payload) {
+        model = update(msg, payload, model);
+        view(model, dispatch);
+      }
+
+      view(model, dispatch);
+    }
+
+    // START
+    appInit();
+  </script>
+</body>
+</html>

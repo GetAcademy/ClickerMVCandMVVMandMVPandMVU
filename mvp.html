@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>MVP Clicker</title>
+    <style>
+        div {
+            font-size: 300%;
+            user-select: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app"></div>
+
+    <script>
+        // MODEL
+        const model = {
+            points: 0,
+            pointsPerClick: 1,
+            smileyIndex: 0,
+        };
+
+        // VIEW
+        const view = {
+            render(state, handlers) {
+                const smiley = state.smileyIndex === 0 ? '😀' : '😁';
+                document.getElementById('app').innerHTML = `
+                    <div id="image">${smiley}</div>
+                    <div id="pointsInfo">${state.points}</div>
+                    <button id="upgradeButton">Kjøp oppgradering (10 poeng)</button>
+                `;
+
+                document.getElementById('image').onclick = handlers.onClick;
+                document.getElementById('upgradeButton').onclick = handlers.onUpgrade;
+            }
+        };
+
+        // PRESENTER
+        const presenter = {
+            init() {
+                view.render(model, this.getHandlers());
+            },
+            getHandlers() {
+                return {
+                    onClick: () => {
+                        model.points += model.pointsPerClick;
+                        model.smileyIndex = 1 - model.smileyIndex;
+                        view.render(model, presenter.getHandlers());
+                    },
+                    onUpgrade: () => {
+                        if (model.points >= 10) {
+                            model.points -= 10;
+                            model.pointsPerClick++;
+                            view.render(model, presenter.getHandlers());
+                        }
+                    }
+                };
+            }
+        };
+
+        // START
+        presenter.init();
+    </script>
+</body>
+
+</html>

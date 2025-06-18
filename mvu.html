@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>MVU Clicker</title>
+  <title>MVU Clicker (Immutable)</title>
   <style>
     div {
       font-size: 300%;
@@ -20,11 +20,11 @@
   <script>
     // MODEL
     function initModel() {
-      return {
+      return Object.freeze({
         points: 0,
         pointsPerClick: 1,
         smileyIndex: 0
-      };
+      });
     }
 
     // MESSAGES
@@ -36,31 +36,38 @@
 
     // UPDATE
     function update(msg, payload, model) {
+      let newModel;
+
       switch (msg) {
         case Msg.Clicked:
-          return {
+          newModel = {
             ...model,
             points: model.points + model.pointsPerClick,
             smileyIndex: 1 - model.smileyIndex
           };
+          break;
 
         case Msg.Upgrade:
           if (model.points < 10) return model;
-          return {
+          newModel = {
             ...model,
             points: model.points - 10,
             pointsPerClick: model.pointsPerClick + 1
           };
+          break;
 
         case Msg.SetPointsPerClick:
-          return {
+          newModel = {
             ...model,
             pointsPerClick: Number(payload)
           };
+          break;
 
         default:
           return model;
       }
+
+      return Object.freeze(newModel);
     }
 
     // VIEW

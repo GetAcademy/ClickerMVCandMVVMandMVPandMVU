@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>MVU Clicker (Immutable)</title>
+  <title>MVU Clicker (Simplified)</title>
   <style>
     div {
       font-size: 300%;
@@ -19,55 +19,39 @@
 
   <script>
     // MODEL
-    function initModel() {
-      return Object.freeze({
-        points: 0,
-        pointsPerClick: 1,
-        smileyIndex: 0
-      });
-    }
+    const initModel = () => Object.freeze({
+      points: 0,
+      pointsPerClick: 1,
+      smileyIndex: 0
+    });
 
-    // MESSAGES
-    const Msg = {
-      Clicked: 'CLICKED',
-      Upgrade: 'UPGRADE',
-      SetPointsPerClick: 'SET_POINTS_PER_CLICK'
+    // HANDLERS
+    const handlers = {
+      CLICKED: (model) => ({
+        ...model,
+        points: model.points + model.pointsPerClick,
+        smileyIndex: 1 - model.smileyIndex
+      }),
+
+      UPGRADE: (model) => {
+        if (model.points < 10) return model;
+        return {
+          ...model,
+          points: model.points - 10,
+          pointsPerClick: model.pointsPerClick + 1
+        };
+      },
+
+      SET_POINTS_PER_CLICK: (model, payload) => ({
+        ...model,
+        pointsPerClick: Number(payload)
+      })
     };
 
     // UPDATE
     function update(msg, payload, model) {
-      let newModel;
-
-      switch (msg) {
-        case Msg.Clicked:
-          newModel = {
-            ...model,
-            points: model.points + model.pointsPerClick,
-            smileyIndex: 1 - model.smileyIndex
-          };
-          break;
-
-        case Msg.Upgrade:
-          if (model.points < 10) return model;
-          newModel = {
-            ...model,
-            points: model.points - 10,
-            pointsPerClick: model.pointsPerClick + 1
-          };
-          break;
-
-        case Msg.SetPointsPerClick:
-          newModel = {
-            ...model,
-            pointsPerClick: Number(payload)
-          };
-          break;
-
-        default:
-          return model;
-      }
-
-      return Object.freeze(newModel);
+      const handler = handlers[msg];
+      return handler ? Object.freeze(handler(model, payload)) : model;
     }
 
     // VIEW
@@ -75,7 +59,7 @@
       const app = document.getElementById('app');
       const smiley = model.smileyIndex === 0 ? '😀' : '😁';
 
-      app.innerHTML = `
+      app.innerHTML = /*HTML*/`
         <div id="smiley">${smiley}</div>
         <div id="points">${model.points}</div>
 
@@ -89,20 +73,19 @@
         </button>
       `;
 
-      // Event bindings
       document.getElementById('smiley')
-        .addEventListener('click', () => dispatch(Msg.Clicked));
+        .addEventListener('click', () => dispatch('CLICKED'));
 
       document.getElementById('upgradeBtn')
-        .addEventListener('click', () => dispatch(Msg.Upgrade));
+        .addEventListener('click', () => dispatch('UPGRADE'));
 
       document.getElementById('ppcInput')
         .addEventListener('input', e =>
-          dispatch(Msg.SetPointsPerClick, e.target.value)
+          dispatch('SET_POINTS_PER_CLICK', e.target.value)
         );
     }
 
-    // PROGRAM RUNNER
+    // APP
     function appInit() {
       let model = initModel();
 

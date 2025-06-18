@@ -1,79 +1,84 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="no">
 <head>
-    <meta charset="utf-8" />
-    <title>MVVM Clicker</title>
-    <style>
-        div {
-            font-size: 300%;
-            user-select: none;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>Vue 3 Clicker (MVVM)</title>
+  <style>
+    .app {
+      font-size: 200%;
+      user-select: none;
+      text-align: center;
+      margin-top: 2rem;
+    }
+    .smiley {
+      font-size: 300%;
+      cursor: pointer;
+    }
+    .points {
+      margin: 1rem 0;
+    }
+  </style>
 </head>
-
 <body>
-    <div id="app">
-        <div id="image"></div>
-        <div id="pointsInfo"></div>
-        <button id="upgradeButton">Kjøp oppgradering (10 poeng)</button>
-    </div>
+  <div id="app"></div>
 
-    <script>
-        // MODEL
-        const model = {
-            points: 0,
-            pointsPerClick: 1,
-            smileyIndex: 0
+  <!-- Vue 3 via CDN -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+
+  <script>
+    const { ref, computed } = Vue;
+
+    const App = {
+      setup() {
+        // --- MODEL ---
+        const points = ref(0);
+        const pointsPerClick = ref(1);
+        const smileyIndex = ref(0);
+
+        // --- VIEWMODEL ---
+        const smiley = computed(() => smileyIndex.value === 0 ? '😀' : '😁');
+        const canUpgrade = computed(() => points.value >= 10);
+
+        function click() {
+          points.value += pointsPerClick.value;
+          smileyIndex.value = 1 - smileyIndex.value;
+        }
+
+        function upgrade() {
+          if (canUpgrade.value) {
+            points.value -= 10;
+            pointsPerClick.value++;
+          }
+        }
+
+        return {
+          points,
+          pointsPerClick,
+          smiley,
+          canUpgrade,
+          click,
+          upgrade
         };
+      },
+      template: /*HTML*/`
+        <div class="app">
+          <div class="smiley" @click="click">{{ smiley }}</div>
+          <div class="points">{{ points }}</div>
 
-        // VIEWMODEL
-        const viewModel = {
-            get points() {
-                return model.points;
-            },
-            get smiley() {
-                return model.smileyIndex === 0 ? '😀' : '😁';
-            },
-            canUpgrade() {
-                return model.points >= 10;
-            },
-            click() {
-                model.points += model.pointsPerClick;
-                model.smileyIndex = 1 - model.smileyIndex;
-                view.update();
-            },
-            upgrade() {
-                if (this.canUpgrade()) {
-                    model.points -= 10;
-                    model.pointsPerClick++;
-                    view.update();
-                }
-            }
-        };
+          <label>
+            Poeng per klikk:
+            <input type="number" v-model.number="pointsPerClick" min="1" />
+          </label>
 
-        // VIEW
-        const view = {
-            init() {
-                this.imageEl = document.getElementById('image');
-                this.pointsEl = document.getElementById('pointsInfo');
-                this.upgradeBtn = document.getElementById('upgradeButton');
+          <br />
+          <button @click="upgrade" :disabled="!canUpgrade">
+            Kjøp oppgradering (10 poeng)
+          </button>
+        </div>
+      `
+    };
 
-                this.imageEl.addEventListener('click', () => viewModel.click());
-                this.upgradeBtn.addEventListener('click', () => viewModel.upgrade());
-
-                this.update();
-            },
-            update() {
-                this.imageEl.textContent = viewModel.smiley;
-                this.pointsEl.textContent = viewModel.points;
-                this.upgradeBtn.disabled = !viewModel.canUpgrade();
-            }
-        };
-
-        // START
-        view.init();
-    </script>
+    Vue.createApp(App).mount('#app');
+  </script>
 </body>
-
 </html>

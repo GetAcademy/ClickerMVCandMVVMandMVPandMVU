@@ -27,7 +27,7 @@
         const view = {
             render(state, handlers) {
                 const smiley = state.smileyIndex === 0 ? '😀' : '😁';
-                document.getElementById('app').innerHTML = `
+                document.getElementById('app').innerHTML = /*HTML*/`
                     <div id="image">${smiley}</div>
                     <div id="pointsInfo">${state.points}</div>
                     <button id="upgradeButton">Kjøp oppgradering (10 poeng)</button>
